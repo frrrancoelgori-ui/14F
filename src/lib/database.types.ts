@@ -119,11 +119,11 @@ export interface Database {
         Insert: {
           id?: string
           sender_id: string
-          recipient_email: string
+          recipient_email?: string
           recipient_id?: string | null
           status?: 'pending' | 'accepted' | 'rejected' | 'expired'
-          invitation_code?: string
-          expires_at?: string
+          invitation_code: string
+          expires_at: string
           created_at?: string
         }
         Update: {

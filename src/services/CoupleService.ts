@@ -21,6 +21,20 @@ export class CoupleService {
   static async generatePairingPin(): Promise<{ pin: string; expiresAt: string }> {
     const pin = generatePin();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
+    const deviceId = getOrCreateDeviceId();
+
+    const { data, error } = await supabase
+      .from('couple_invitations')
+      .insert({
+        sender_id: deviceId,
+        invitation_code: pin,
+        expires_at: expiresAt,
+        status: 'pending',
+      })
+      .select()
+      .single();
+
+    if (error) throw error;
 
     localStorage.setItem('pairingPin', pin);
     localStorage.setItem('pairingPinExpires', expiresAt);
@@ -60,6 +74,10 @@ export class CoupleService {
 
     const deviceId = getOrCreateDeviceId();
 
+    if (invitation.sender_id === deviceId) {
+      throw new Error('You cannot pair with yourself');
+    }
+
     const { error: updateError } = await supabase
       .from('couple_invitations')
       .update({
@@ -81,6 +99,9 @@ export class CoupleService {
       .single();
 
     if (coupleError) throw coupleError;
+
+    localStorage.setItem('coupleId', couple.id);
+
     return couple;
   }
 
